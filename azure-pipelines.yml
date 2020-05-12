@@ -38,16 +38,15 @@ stages:
           $(tag)
     - publish: '$(Build.SourcesDirectory)/manifests'
       artifact: manifests
-
 - stage: 'Deploy'
-  displayName: 'Deploy the container'
+  displayName: 'Deploy the containers'
   dependsOn: Build
   jobs:
-  - job: 'Deploy'
-    displayName: 'Deploy job'
+  - deployment: Deploy
+    displayName: Deploy
     pool:
       vmImage: 'ubuntu-16.04'
-      environment: 'spike.default'
+    environment: 'spike.default'
     variables:
     - group: Release
     strategy:
@@ -56,12 +55,6 @@ stages:
           steps:
           - download: current
             artifact: manifests
-    
-          - task: AzureWebAppContainer@1
-            inputs:
-            appName: $(WebAppName)
-            azureSubscription: 'Resource Manager - Tailspin - Space Game'
-            imageName: $(RegistryName)/$(webRepository):$(build.buildId)
           - task: KubernetesManifest@0
             displayName: Create imagePullSecret
             inputs:
